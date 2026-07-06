@@ -166,12 +166,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  ptai                          # Start interactive mode
-  ptai --cmd "nmap localhost"   # Run command
-  ptai --agent "scan 192.168.1.1"  # Run agent task
-  ptai --workflow recon target.com  # Run workflow
-  ptai --list-modes             # List modes
-  ptai --status                # Show agent status
+  aihack                          # Start interactive mode
+  aihack --cmd "nmap localhost"   # Run command
+  aihack --agent "scan 192.168.1.1"  # Run agent task
+  aihack --workflow recon target.com  # Run workflow
+  aihack --list-modes             # List modes
+  aihack --status                # Show agent status
         """
     )
     
