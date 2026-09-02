@@ -318,9 +318,10 @@ class HealthCheckSuite:
     def get_status(self) -> str:
         """Get overall status."""
         results = self.run_all()
+        critical_names = {c.name for c in self.checks if c.critical}
         
         if any(r.status == "unhealthy" for r in results):
-            if any(r.critical and r.status == "unhealthy" for r in results):
+            if any(r.name in critical_names and r.status == "unhealthy" for r in results):
                 return "unhealthy"
             return "degraded"
         

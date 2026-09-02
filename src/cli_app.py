@@ -60,7 +60,7 @@ console = Console()
 
 def get_client(backend_name=None):
     config = get_config()
-    backend = backend_name or os.getenv("DEFAULT_BACKEND", config.ollama.host)
+    backend = backend_name or os.getenv("DEFAULT_BACKEND", "ollama")
     if backend == "lmstudio":
         return create_client("lmstudio", host=config.ollama.host)
     elif backend == "llamacpp":
@@ -1046,9 +1046,9 @@ def process_command(user_input: str) -> Optional[str]:
             if framework not in ["cis", "owasp", "pci", "nist"]:
                 console.print("[yellow]Framework valido: cis, owasp, pci, nist[/]")
                 return None
-            from src.tools.compliance import COMPLIANCE_CHECKS
+            from src.tools.compliance import COMPLIANCE_CHECKS, resolve_framework
             console.print(f"[{ACCENT_ALT}]Verificando compliance {framework.upper()}...[/]")
-            framework_data = COMPLIANCE_CHECKS.get(framework, {})
+            framework_data = COMPLIANCE_CHECKS.get(resolve_framework(framework), {})
             if framework == "cis":
                 checks = framework_data.get("linux", []) + framework_data.get("windows", [])
             else:

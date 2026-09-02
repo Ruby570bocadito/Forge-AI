@@ -59,6 +59,11 @@ reports/
 scans/
 output/
 
+# src/reports is a source package, not the reports output directory
+!src/reports/
+# Runtime CVE lookup cache
+cve_data/cache/
+
 # pytest
 .pytest_cache/
 .coverage
