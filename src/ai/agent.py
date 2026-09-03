@@ -1247,7 +1247,7 @@ Proporciona:
         messages = [
             {"role": "system", "content": """Eres un experto en código de seguridad y pentesting.
 Mejora, optimiza y expande código existente.
-Cuando、改善as código:
+Cuando mejoras código:
 1. Mantén la funcionalidad original
 2. Agrega comentarios explicativos
 3. Mejora la eficiencia y seguridad

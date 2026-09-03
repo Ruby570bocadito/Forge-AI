@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 from datetime import datetime
+import hashlib
 import json
 
 INCIDENT_TYPES = {
@@ -101,7 +102,8 @@ CONTACT_TEAM = {
 
 class Incident:
     def __init__(self, title: str, incident_type: str, description: str):
-        self.id = f"INC-{datetime.now().strftime('%Y%m%d')}-{hash(title) % 10000:04d}"
+        digest = hashlib.sha256(title.encode("utf-8")).hexdigest()[:6]
+        self.id = f"INC-{datetime.now().strftime('%Y%m%d')}-{digest}"
         self.title = title
         self.incident_type = incident_type
         self.description = description

@@ -84,10 +84,25 @@ COMPLIANCE_CHECKS = {
 }
 
 
+# Alias resolution: the CLI exposes ``cis`` and ``pci`` while the internal
+# keys are ``cis_benchmarks`` and ``pci_dss``. Normalize so both work.
+FRAMEWORK_ALIASES = {
+    "cis": "cis_benchmarks",
+    "pci": "pci_dss",
+    "pcidss": "pci_dss",
+    "pci_dss": "pci_dss",
+}
+
+
+def resolve_framework(framework: str) -> str:
+    """Return the canonical COMPLIANCE_CHECKS key for a framework name."""
+    return FRAMEWORK_ALIASES.get((framework or "").lower(), (framework or "").lower())
+
+
 class ComplianceChecker:
     def __init__(self, framework: str = "owasp"):
-        self.framework = framework
-        self.checks = COMPLIANCE_CHECKS.get(framework, {})
+        self.framework = resolve_framework(framework)
+        self.checks = COMPLIANCE_CHECKS.get(self.framework, {})
     
     def check_linux_system(self, system_info: Dict) -> List[Dict]:
         """Verifica compliance de sistema Linux"""
@@ -181,6 +196,7 @@ class ComplianceChecker:
 
 def check_compliance(framework: str, data: Dict) -> Dict:
     """Función principal de verificación"""
+    framework = resolve_framework(framework)
     checker = ComplianceChecker(framework)
     
     if framework == "owasp":

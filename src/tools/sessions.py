@@ -5,15 +5,24 @@ from datetime import datetime
 from typing import List, Dict, Optional
 import shutil
 
+from src.tools.utils import sanitize_filename
+
 BASE_DIR = Path(__file__).parent.parent.parent
 SESSIONS_DIR = BASE_DIR / "sessions"
 
 SESSIONS_DIR.mkdir(exist_ok=True)
 
+
+def _safe_name(name: str) -> str:
+    """Sanitize a session/target name to prevent path traversal."""
+    return sanitize_filename(name).lstrip(".") or "session"
+
+
 def create_session(name: str = None) -> str:
     if not name:
         name = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
+    name = _safe_name(name)
+
     session_path = SESSIONS_DIR / name
     session_path.mkdir(exist_ok=True)
     
@@ -35,7 +44,7 @@ def save_session_data(name: str, data: Dict):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def load_session(name: str) -> Optional[Dict]:
-    session_path = SESSIONS_DIR / name / "session.json"
+    session_path = SESSIONS_DIR / _safe_name(name) / "session.json"
     if session_path.exists():
         with open(session_path, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -57,23 +66,27 @@ def list_sessions() -> List[Dict]:
     return sorted(sessions, key=lambda x: x.get("created", ""), reverse=True)
 
 def add_target_to_session(session_name: str, target: str, tool: str):
+    session_name = _safe_name(session_name)
+    target_safe = _safe_name(target)
     data = load_session(session_name)
     if data:
         if target not in data["targets"]:
             data["targets"].append(target)
         
-        target_dir = SESSIONS_DIR / session_name / "targets" / target
+        target_dir = SESSIONS_DIR / session_name / "targets" / target_safe
         target_dir.mkdir(parents=True, exist_ok=True)
         
         save_session_data(session_name, data)
 
 def save_result_to_session(session_name: str, target: str, result_name: str, content: str):
+    session_name = _safe_name(session_name)
+    target_safe = _safe_name(target)
     data = load_session(session_name)
     if data:
-        target_dir = SESSIONS_DIR / session_name / "targets" / target
+        target_dir = SESSIONS_DIR / session_name / "targets" / target_safe
         target_dir.mkdir(parents=True, exist_ok=True)
         
-        result_file = target_dir / f"{result_name}.txt"
+        result_file = target_dir / f"{_safe_name(result_name)}.txt"
         with open(result_file, "w", encoding="utf-8") as f:
             f.write(content)
         
@@ -85,19 +98,20 @@ def save_result_to_session(session_name: str, target: str, result_name: str, con
         save_session_data(session_name, data)
 
 def get_session_results(session_name: str, target: str = None) -> Dict:
+    session_name = _safe_name(session_name)
     data = load_session(session_name)
     if not data:
         return {}
     
     results = {}
     if target:
-        target_dir = SESSIONS_DIR / session_name / "targets" / target
+        target_dir = SESSIONS_DIR / session_name / "targets" / _safe_name(target)
         if target_dir.exists():
             for f in target_dir.glob("*.txt"):
                 results[f.stem] = f.read_text(encoding="utf-8")
     else:
         for target in data.get("targets", []):
-            target_dir = SESSIONS_DIR / session_name / "targets" / target
+            target_dir = SESSIONS_DIR / session_name / "targets" / _safe_name(target)
             if target_dir.exists():
                 results[target] = {}
                 for f in target_dir.glob("*.txt"):
@@ -116,13 +130,14 @@ def add_chat_to_session(session_name: str, role: str, content: str):
         save_session_data(session_name, data)
 
 def delete_session(name: str) -> bool:
-    session_path = SESSIONS_DIR / name
+    session_path = SESSIONS_DIR / _safe_name(name)
     if session_path.exists():
         shutil.rmtree(session_path)
         return True
     return False
 
 def export_session(session_name: str) -> Optional[str]:
+    session_name = _safe_name(session_name)
     data = load_session(session_name)
     if data:
         export_path = SESSIONS_DIR / session_name / "export.json"
